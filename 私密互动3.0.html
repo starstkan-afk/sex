@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>私密心跳空间 - V3.1 视频图片全功能版</title>
+    <style>
+        :root {
+            --bg-color: #0b090a;
+            --card-bg: #161214;
+            --accent-glow: #ff4d6d;
+            --text-main: #f5f3f4;
+            --text-sub: #a4969b;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+            padding-bottom: 50px;
+        }
+        h1 {
+            font-size: 1.6rem;
+            margin-bottom: 2px;
+            color: #ff4d6d;
+            letter-spacing: 1px;
+        }
+        .subtitle {
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            margin-bottom: 20px;
+        }
+        .nav-tabs {
+            display: flex;
+            justify-content: space-between;
+            background: #1a1215;
+            padding: 4px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #331e24;
+        }
+        .tab-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-sub);
+            padding: 9px 0;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+            box-shadow: none;
+            margin: 0;
+        }
+        .tab-btn.active {
+            background: linear-gradient(135deg, #ff4d6d, #c9184a);
+            color: white;
+            box-shadow: 0 4px 12px rgba(201, 24, 74, 0.4);
+        }
+        .panel {
+            display: none;
+        }
+        .panel.active {
+            display: block;
+        }
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid #3a1c24;
+            border-radius: 16px;
+            padding: 22px 18px;
+            margin-bottom: 15px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+            min-height: 130px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, #ff4d6d, #7b2cbf);
+        }
+        .task-type-tag {
+            font-size: 0.75rem;
+            background: #38040e;
+            color: #ff758f;
+            padding: 3px 10px;
+            border-radius: 20px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .task-text {
+            font-size: 1.15rem;
+            line-height: 1.6;
+            font-weight: 500;
+        }
+        button.action-btn {
+            background: linear-gradient(135deg, #ff4d6d, #9d0208);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            padding: 14px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            box-shadow: 0 4px 15px rgba(201, 24, 74, 0.4);
+            transition: transform 0.1s;
+        }
+        button.action-btn:active {
+            transform: scale(0.97);
+        }
+        .secondary-btn {
+            background: #2b1d22;
+            border: 1px solid #590d22;
+            color: #ff758f;
+            box-shadow: none;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            background: #120e10;
+            padding: 10px;
+            border-radius: 10px;
+        }
+        /* 自定义输入区 */
+        .input-group {
+            width: 100%;
+            margin-bottom: 12px;
+            text-align: left;
+        }
+        .input-group label {
+            font-size: 0.8rem;
+            color: var(--text-sub);
+            display: block;
+            margin-bottom: 4px;
+        }
+        .input-group textarea, .input-group input {
+            width: 100%;
+            background: #1e1518;
+            border: 1px solid #4a2530;
+            border-radius: 8px;
+            padding: 10px;
+            color: white;
+            font-size: 0.95rem;
+            box-sizing: border-box;
+        }
+        /* 聊天与多媒体区 */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 400px;
+            background: var(--card-bg);
+            border: 1px solid #3a1c24;
+            border-radius: 16px;
+            overflow: hidden;
+            text-align: left;
+        }
+        .chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .chat-bubble {
+            max-width: 80%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            word-break: break-all;
+        }
+        .chat-bubble.me {
+            background: #c9184a;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+        }
+        .chat-bubble.partner {
+            background: #2b1d22;
+            color: #ff758f;
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+        }
+        .chat-bubble img, .chat-bubble video {
+            width: 100%;
+            border-radius: 8px;
+            margin-top: 5px;
+            max-height: 220px;
+            object-fit: cover;
+            display: block;
+        }
+        .chat-input-bar {
+            display: flex;
+            padding: 10px;
+            background: #120e10;
+            border-top: 1px solid #3a1c24;
+            align-items: center;
+            gap: 6px;
+        }
+        .chat-input-bar input[type="text"] {
+            flex: 1;
+            background: #1e1518;
+            border: 1px solid #4a2530;
+            border-radius: 20px;
+            padding: 8px 12px;
+            color: white;
+            font-size: 0.9rem;
+        }
+        .media-btn {
+            background: #38040e;
+            color: #ff758f;
+            border: 1px solid #590d22;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1rem;
+            flex-shrink: 0;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🔥 极乐密令</h1>
+    <div class="subtitle">专属你们的高能空间（图片/视频全支持 + 本地永久保存）</div>
+
+    <!-- 导航切换 -->
+    <div class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('game')">🔥 盲盒抽卡</button>
+        <button class="tab-btn" onclick="switchTab('custom')">⚡ 题库加码</button>
+        <button class="tab-btn" onclick="switchTab('chat')">💬 私密聊图/视频</button>
+    </div>
+
+    <!-- 面板 1：火辣抽卡游戏 -->
+    <div id="gamePanel" class="panel active">
+        <div class="card">
+            <div id="taskTag" class="task-type-tag">准备就绪</div>
+            <div id="taskDisplay" class="task-text">点击下方按钮，抽取今晚的沉浸式高能任务...</div>
+        </div>
+
+        <button class="action-btn" onclick="drawHotTask()">抽取高能挑逗任务</button>
+        <button class="action-btn secondary-btn" onclick="drawDeepPunishment()">触发深度羞耻惩罚</button>
+
+        <div class="stats">
+            <span>已完成刺激回合: <strong id="count">0</strong></span>
+            <span>当前欲望等级: <strong id="level">Lv.1 试探</strong></span>
+        </div>
+    </div>
+
+    <!-- 面板 2：自定义加码 -->
+    <div id="customPanel" class="panel">
+        <div class="card" style="align-items: stretch; text-align: left; min-height: auto;">
+            <div class="input-group">
+                <label>添加你们两人的私密XP/坏点子：</label>
+                <textarea id="customInput" rows="3" placeholder="例如：立刻拍一段 10 秒的性感视频发给对方..."></textarea>
+            </div>
+            <button class="action-btn" style="margin-top: 5px;" onclick="addCustomTask()">永久写入自定义题库</button>
+        </div>
+        <div style="font-size: 0.8rem; color: var(--text-sub); margin-top: 10px; text-align: left;">
+            💡 提示：所有添加的内容都会自动存入本地，绝对不会丢失！
+        </div>
+    </div>
+
+    <!-- 面板 3：私密聊天（图、视频、文字） -->
+    <div id="chatPanel" class="panel">
+        <div class="chat-container">
+            <div class="chat-messages" id="chatMessages">
+                <!-- 动态聊天记录 -->
+            </div>
+            <div class="chat-input-bar">
+                <!-- 发图片按钮 -->
+                <label class="media-btn" title="发图片">
+                    📷
+                    <input type="file" id="chatImgInput" accept="image/*" style="display:none;" onchange="sendMedia(event, 'image')">
+                </label>
+                <!-- 发视频按钮 -->
+                <label class="media-btn" title="发视频">
+                    🎬
+                    <input type="file" id="chatVidInput" accept="video/*" style="display:none;" onchange="sendMedia(event, 'video')">
+                </label>
+                <input type="text" id="chatTextInput" placeholder="发送私密情话..." onkeypress="handleKeyPress(event)">
+                <button class="media-btn" style="border-radius: 18px; width: auto; padding: 0 12px; font-size: 0.85rem;" onclick="sendText()">发送</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let defaultTasks = [
+        "【脱衣赌局】：立刻脱掉身上的一件衣物，并拍一张照片或录一段小视频发给对方。",
+        "【声控挑逗】：闭上眼睛，用最勾人的气音或轻微的呻吟声，录一段语音发给对方。",
+        "【零距离接触】：保持面对面零距离，对视 60 秒，期间谁先笑或移开视线，就要被罚亲吻 1 分钟。",
+        "【禁忌触碰】：由对方指定你身上的一个敏感部位，进行长达 2 分钟的无声挑逗。"
+    ];
+
+    let defaultPunishments = [
+        "【极乐惩罚】：脱掉贴身衣物，并录制一段短视频向对方坦白此刻脑子里最坏的画面。",
+        "【声音特训】：必须连续录制 30 秒充满魅惑的喘息或求饶声，发到聊天框里。",
+        "【绝对臣服】：跪在对方面前，为对方做 3 分钟的全身放松按摩。"
+    ];
+
+    let savedTasks = JSON.parse(localStorage.getItem('secret_tasks')) || defaultTasks;
+    let savedPunishments = JSON.parse(localStorage.getItem('secret_punishments')) || defaultPunishments;
+    let actionCount = parseInt(localStorage.getItem('secret_count')) || 0;
+    let chatHistory = JSON.parse(localStorage.getItem('secret_chats')) || [
+        { sender: 'partner', type: 'text', content: '欢迎来到私密空间！这里不仅能抽卡，还可以随时发图和发视频哦 🔥' }
+    ];
+
+    document.getElementById("count").innerText = actionCount;
+    updateLevelDisplay(actionCount);
+    renderChat();
+
+    function switchTab(tabName) {
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        
+        if(tabName === 'game') {
+            document.getElementById('gamePanel').classList.add('active');
+            event.target.classList.add('active');
+        } else if(tabName === 'custom') {
+            document.getElementById('customPanel').classList.add('active');
+            event.target.classList.add('active');
+        } else if(tabName === 'chat') {
+            document.getElementById('chatPanel').classList.add('active');
+            event.target.classList.add('active');
+            scrollToBottom();
+        }
+    }
+
+    function drawHotTask() {
+        const randomIndex = Math.floor(Math.random() * savedTasks.length);
+        document.getElementById("taskTag").innerText = "🔥 高能抽卡";
+        document.getElementById("taskDisplay").innerText = savedTasks[randomIndex];
+        incrementCount();
+    }
+
+    function drawDeepPunishment() {
+        const randomIndex = Math.floor(Math.random() * savedPunishments.length);
+        document.getElementById("taskTag").innerText = "⚠️ 深度羞耻";
+        document.getElementById("taskDisplay").innerText = savedPunishments[randomIndex];
+        incrementCount();
+    }
+
+    function addCustomTask() {
+        const val = document.getElementById("customInput").value.trim();
+        if(val) {
+            savedTasks.push("【专属加码】: " + val);
+            localStorage.setItem('secret_tasks', JSON.stringify(savedTasks));
+            alert("成功写入本地题库！");
+            document.getElementById("customInput").value = "";
+            document.querySelectorAll('.tab-btn')[0].click();
+            switchTab('game');
+        } else {
+            alert("内容不能为空哦！");
+        }
+    }
+
+    function incrementCount() {
+        actionCount++;
+        localStorage.setItem('secret_count', actionCount);
+        document.getElementById("count").innerText = actionCount;
+        updateLevelDisplay(actionCount);
+    }
+
+    function updateLevelDisplay(count) {
+        let levelText = "Lv.1 试探";
+        if (count > 3) levelText = "Lv.2 烈火焚身";
+        if (count > 7) levelText = "Lv.3 彻底沦陷 🥵";
+        document.getElementById("level").innerText = levelText;
+    }
+
+    // 渲染聊天记录
+    function renderChat() {
+        const container = document.getElementById("chatMessages");
+        container.innerHTML = "";
+        chatHistory.forEach(msg => {
+            const bubble = document.createElement("div");
+            bubble.className = `chat-bubble ${msg.sender}`;
+            if(msg.type === 'text') {
+                bubble.innerText = msg.content;
+            } else if(msg.type === 'image') {
+                bubble.innerHTML = `<span style="font-size:0.7rem; opacity:0.7;">[私密图片]</span><img src="${msg.content}">`;
+            } else if(msg.type === 'video') {
+                bubble.innerHTML = `<span style="font-size:0.7rem; opacity:0.7;">[私密视频]</span><video src="${msg.content}" controls playsinline></video>`;
+            }
+            container.appendChild(bubble);
+        });
+        scrollToBottom();
+    }
+
+    function sendText() {
+        const input = document.getElementById("chatTextInput");
+        const val = input.value.trim();
+        if(val) {
+            chatHistory.push({ sender: 'me', type: 'text', content: val });
+            localStorage.setItem('secret_chats', JSON.stringify(chatHistory));
+            input.value = "";
+            renderChat();
+        }
+    }
+
+    function handleKeyPress(e) {
+        if(e.key === 'Enter') sendText();
+    }
+
+    // 处理图片与视频发送
+    function sendMedia(e, type) {
+        const file = e.target.files[0];
+        if(file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                chatHistory.push({ sender: 'me', type: type, content: event.target.result });
+                localStorage.setItem('secret_chats', JSON.stringify(chatHistory));
+                renderChat();
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function scrollToBottom() {
+        const container = document.getElementById("chatMessages");
+        container.scrollTop = container.scrollHeight;
+    }
+</script>
+
+</body>
+</html>
